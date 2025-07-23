@@ -1,103 +1,69 @@
-class Cell {
-  static availableTypes = ["weed", "eat", "snake", "wall"]
-  static isAvailableType(t) {
-    return Cell.availableTypes.includes(t)
-  }
+import {Cell, Field, Snake} from "./game.js"
 
+class HTMLCell extends Cell {
   #htmlElement
-  #type
 
   constructor(t="weed") {
+    super(t)
     this.#htmlElement = document.createElement("div")
     this.type = t
   }
 
-  get type() {
-    return this.#type
+  get htmlElement() {
+    return this.#htmlElement
   }
 
   set type(t) {
-    if (Cell.isAvailableType(t)) {
-      this.#type = t
-      if (this.#htmlElement) {
-        this.#htmlElement.className = "cell " + t
-      }
-    } else throw new Error("Not such cell type: " + t)
+    super.type = t
+    this.#htmlElement.className = "cell " + t
   }
 
-  get html() {
-    return this.#htmlElement
+  get type() {
+    return super.type
   }
 }
 
-class Field {
+class HTMLField extends Field {
   #htmlElement
-  #cells
+
   constructor(rows, cols) {
+    super(rows, cols)
     this.#htmlElement = document.getElementById("field")
-    this.#cells = []
-    
-    for (let i = 0; i < rows; i++) {
-      const row = []
-      for (let j = 0; j < cols; j++) {
-        let currentCellType = "weed"
-        const isTopOrBot = i === 0 || i+1 === rows
-        const isSide = j === 0 || j+1 === cols
-        if (isTopOrBot || isSide) {
-          currentCellType = "wall"
-        }
-        const cell = new Cell(currentCellType)
-        row.push(cell)
-      }
-      this.#cells.push(row)
-    }
-
-    this.forEachCell(cell => this.#htmlElement.append(cell.html))    
+    this.forEachCell(cell => 
+      this.#htmlElement.append(cell.htmlElement))
   }
 
-  forEachCell(cb) {
-    this.#cells.forEach( row => row.forEach(cb) )
-  }
-
-  render(x, y, cellType) {
-    this.#cells[y][x].type = cellType
+  createCell(type) {
+    return new HTMLCell(type)
   }
 }
 
-class Snake {
-  #body = []
-  #direction
-  #field
+window.onload = () => {
+  const gameField = new HTMLField(20, 20)
+  // const snake = new Snake(2, 2, 5, "bottom")
+  const snake = new Snake(1, 1, 3, "right")
+  snake.spawn(gameField)
 
-  static directions = ["top", "left", "right", "bottom"]
-
-  constructor(headX=1, headY=1, length=3, direction="right") {
-    this.#direction = direction
-
-    let x = headX, y = headY, fnX = () => headX, fnY = () => headY
-    if (direction === "right") fnX = () => ++x
-    if (direction === "left") fnX = () => --x
-    if (direction === "top") fnY = () => --y
-    if (direction === "bottom") fnY = () => ++y
-
-    for (let i = length; i > 0; i--) {
-      this.#body.push([fnX(), fnY()])
-    }
+  let interval, running = false
+  const stop = () => {
+    clearInterval(interval)
+    running = false
+  }
+  const start = () => {
+    interval = setInterval(() => snake.move(() => {
+      alert("Game over!")
+      stop()
+      window.location.href = "/"
+    }), 100)
+    running = true
   }
 
-  spawn(field) {
-    this.#field = field
-    this.#body.forEach(coors => {
-      const [x, y] = coors
-
-      this.#field.render(x, y, "snake")
-    })
-  }
+  window.addEventListener("keydown", event => {
+    if (event.code === "ArrowUp") snake.turnUp()
+    if (event.code === "ArrowDown") snake.turnDown()
+    if (event.code === "ArrowLeft") snake.turnLeft()
+    if (event.code === "ArrowRight") snake.turnRight()
+    if (event.code === "Space")
+      !running ? start() : stop()
+  })
 }
-
-console.dir(Cell.availableTypes)
-const gameField = new Field(20, 20)
-const snake = new Snake(2, 2, 5, "bottom")
-// const snake2 = new Snake(12, 10, 4, "left")
-snake.spawn(gameField)
-// snake2.spawn(gameField)
