@@ -1,4 +1,4 @@
-import {Cell, Field, Snake} from "./game.js"
+import {Cell, Field, Snake, Game} from "./game.js"
 
 class HTMLCell extends Cell {
   #htmlElement
@@ -40,30 +40,24 @@ class HTMLField extends Field {
 
 window.onload = () => {
   const gameField = new HTMLField(20, 20)
-  // const snake = new Snake(2, 2, 5, "bottom")
   const snake = new Snake(1, 1, 3, "right")
-  snake.spawn(gameField)
-
-  let interval, running = false
-  const stop = () => {
-    clearInterval(interval)
-    running = false
-  }
-  const start = () => {
-    interval = setInterval(() => snake.move(() => {
-      alert("Game over!")
-      stop()
-      window.location.href = "/"
-    }), 100)
-    running = true
+  const game = new Game(gameField, snake)
+  game.frameDelay = 100
+  game.execInGameOver = () => {
+    alert("Game over!")
+    window.location.href = "/"
   }
 
   window.addEventListener("keydown", event => {
+    if (event.code.search("Arrow") > -1 && game.paused)
+      game.start()
+
     if (event.code === "ArrowUp") snake.turnUp()
     if (event.code === "ArrowDown") snake.turnDown()
     if (event.code === "ArrowLeft") snake.turnLeft()
     if (event.code === "ArrowRight") snake.turnRight()
-    if (event.code === "Space")
-      !running ? start() : stop()
+      
+    if (event.code === "Space") 
+      game.paused ? game.start() : game.stop()
   })
 }

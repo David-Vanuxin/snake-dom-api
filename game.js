@@ -66,7 +66,7 @@ export class Field {
     return this.#cells[y][x].type === "snake"
   }
 
-  isEat(x, y) {
+  isApple(x, y) {
     return this.#cells[y][x].type === "apple"
   }
 }
@@ -144,9 +144,6 @@ export class Snake {
   }
 
   move(gameOverCallback) {
-    const deleted = this.#body.shift()
-    this.#field.render(deleted[0], deleted[1], "weed")
-
     let [x, y] = this.#body.at(-1)
 
     if (this.#direction === "right") ++x
@@ -159,7 +156,45 @@ export class Snake {
 
     this.#body.push([x, y])
     this.#field.render(x, y, "snake")
+
+    if (!this.#field.isApple(x, y)) {
+      const deleted = this.#body.shift()
+      this.#field.render(deleted[0], deleted[1], "weed")
+    }
+  }
+}
+
+export class Game {
+  #interval
+  #paused = true
+  #snake
+  #field
+
+  constructor(field, snake) {
+    this.#field = field
+    this.#snake = snake
+    this.#snake.spawn(this.#field)
+
+    this.execInGameOver = () => {}
+    this.frameDelay = 200
   }
 
-  grow() {}
+  start() {
+    this.#interval = setInterval(() => {
+      this.#snake.move(() => {
+        this.stop()
+        this.execInGameOver()
+      })
+    }, this.frameDelay)
+    this.#paused = false
+  }
+
+  stop() {
+    clearInterval(this.#interval)
+    this.#paused = true
+  }
+
+  get paused() {
+    return this.#paused
+  }
 }
