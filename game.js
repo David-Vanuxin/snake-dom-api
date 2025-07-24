@@ -26,8 +26,13 @@ export class Cell {
 
 export class Field {
   #cells
+  #rowsCount
+  #colsCount
+
   constructor(rows, cols) {
     this.#cells = []
+    this.#rowsCount = rows
+    this.#colsCount = cols
     
     for (let i = 0; i < rows; i++) {
       const row = []
@@ -68,6 +73,17 @@ export class Field {
 
   isApple(x, y) {
     return this.#cells[y][x].type === "apple"
+  }
+
+  spawnApple() {
+    while (1) {
+      const x = Math.floor(Math.random() * this.#colsCount)
+      const y = Math.floor(Math.random() * this.#rowsCount)
+
+      if (this.isSnake(x, y) || this.isWall(x, y)) continue
+
+      return this.render(x, y, "apple")
+    }
   }
 }
 
@@ -143,7 +159,7 @@ export class Snake {
     this.direction = "right"
   }
 
-  move(gameOverCallback) {
+  move() {
     let [x, y] = this.#body.at(-1)
 
     if (this.#direction === "right") ++x
@@ -152,15 +168,25 @@ export class Snake {
     if (this.#direction === "bottom") ++y
 
     if (this.#field.isWall(x, y) || this.#field.isSnake(x, y))
-      return gameOverCallback()
+      return "GAME_OVER"
+      // return gameOverCallback()
 
-    this.#body.push([x, y])
-    this.#field.render(x, y, "snake")
+    let status = "APPLE"
 
     if (!this.#field.isApple(x, y)) {
       const deleted = this.#body.shift()
       this.#field.render(deleted[0], deleted[1], "weed")
+      status = "NOTHIG"
     }
+
+    this.#body.push([x, y])
+    this.#field.render(x, y, "snake")
+
+    return status
+  }
+
+  find(cb) {
+    return this.#body.find(cb)
   }
 }
 
@@ -169,22 +195,34 @@ export class Game {
   #paused = true
   #snake
   #field
+  #score = 0
 
   constructor(field, snake) {
     this.#field = field
     this.#snake = snake
     this.#snake.spawn(this.#field)
+    this.#field.spawnApple()
 
     this.execInGameOver = () => {}
+    this.onScoreChange = () => {}
     this.frameDelay = 200
   }
 
   start() {
     this.#interval = setInterval(() => {
-      this.#snake.move(() => {
+      const status = this.#snake.move()
+
+      if (status === "GAME_OVER") {
         this.stop()
         this.execInGameOver()
-      })
+      }
+
+      if (status === "APPLE") {
+        this.#score++
+        this.onScoreChange(this.#score)
+        this.#field.spawnApple()
+      }
+
     }, this.frameDelay)
     this.#paused = false
   }

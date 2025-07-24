@@ -19,6 +19,7 @@
 		justify-content: center;
 		width: 100vw;
 		height: 100vh;
+		flex-direction: column;
 	}
 
 	#field {
@@ -50,8 +51,16 @@
 	.wall {
 		background-color: dimgray;
 	}
+
+	h2 {
+		font-family: "Arial", sans-serif;
+		font-size: 150%;
+		text-align: center;
+		color: aliceblue;
+	}
 </style>
 <div id="game">
+	<h2>Score: <span id="score">0</span></h2>
 	<div id="field"></div>
 </div>
 <script type="module" src="./game.js" ></script>

@@ -25,6 +25,7 @@ class HTMLCell extends Cell {
 
 class HTMLField extends Field {
   #htmlElement
+  #subscribeAction
 
   constructor(rows, cols) {
     super(rows, cols)
@@ -48,6 +49,11 @@ window.onload = () => {
     window.location.href = "/"
   }
 
+  const scoreCounter = document.getElementById("score")
+  game.onScoreChange = score => {
+    scoreCounter.textContent = score
+  }
+
   window.addEventListener("keydown", event => {
     if (event.code.search("Arrow") > -1 && game.paused)
       game.start()
@@ -56,7 +62,7 @@ window.onload = () => {
     if (event.code === "ArrowDown") snake.turnDown()
     if (event.code === "ArrowLeft") snake.turnLeft()
     if (event.code === "ArrowRight") snake.turnRight()
-      
+
     if (event.code === "Space") 
       game.paused ? game.start() : game.stop()
   })
