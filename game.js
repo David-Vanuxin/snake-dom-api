@@ -203,3 +203,50 @@ export class AbstractSnake {
     return this.#body.find(cb)
   }
 }
+
+export class Game {
+  #interval
+  #paused = true
+  #snake
+  #field
+  #score = 0
+
+  constructor(field, snake) {
+    this.#field = field
+    this.#snake = snake
+    this.#snake.spawn()
+    this.#field.spawnApple()
+
+    this.execInGameOver = () => {}
+    this.onScoreChange = () => {}
+    this.frameDelay = 200
+  }
+
+  start() {
+    this.#interval = setInterval(() => {
+      const status = this.#snake.move()
+
+      if (status === "GAME_OVER") {
+        this.stop()
+        this.execInGameOver()
+      }
+
+      if (status === "APPLE") {
+        this.#score++
+        this.onScoreChange(this.#score)
+        this.#field.spawnApple()
+      }
+
+    }, this.frameDelay)
+    this.#paused = false
+  }
+
+  stop() {
+    clearInterval(this.#interval)
+    this.#paused = true
+  }
+
+  get paused() {
+    return this.#paused
+  }
+}
