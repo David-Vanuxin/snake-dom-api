@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Snake</title>
+	<!-- Styles for DOM API client -->
+	<!-- <link rel="stylesheet" type="text/css" href="./dom-api-styles.css"> -->
+</head>
+<body>
+<style type="text/css">
+body {
+	background-color: #1e1e1e;
+	margin: 0;
+	padding: 0;
+}
+
+#game {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100vw;
+	height: 100vh;
+	flex-direction: column;
+}
+
+h2 {
+	font-family: "Arial", sans-serif;
+	font-size: 150%;
+	text-align: center;
+	color: aliceblue;
+}
+</style>
+<div id="game">
+	<h2>Score: <span id="score">0</span></h2>
+	<!-- Root for DOM API client -->
+	<!-- <div id="field"></div> -->
+	<!-- Root for Canvas API client -->
+	<canvas id="field"></canvas>
+</div>
+<script type="module" src="./game.js" ></script>
+<!-- DOM API client file -->
+<!-- <script type="module" src="./dom-api-client.js"></script> -->
+<!-- Canvas API client file -->
+<script type="module" src="./canvas-api-client.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+#field {
+	width: 400px;
+	height: 400px;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.cell {
+	width: 20px;
+	height: 20px;
+}
+
+.weed {
+	background-color: cadetblue;
+}
+
+.snake {
+	background-color: blueviolet;
+}
+
+.apple {
+	background-color: crimson;
+}
+
+.wall {
+	background-color: dimgray;
+}
