@@ -1,47 +1,95 @@
-import {Cell, Field, Snake, Game} from "./game.js"
+import {AbstractCell, AbstractField, AbstractSnake} from "./game.js"
 
-class HTMLCell extends Cell {
+class HTMLCell extends AbstractCell {
   #htmlElement
 
-  constructor(t="weed") {
-    super(t)
+  constructor(x, y, t) {
+    super(x, y, t)
     this.#htmlElement = document.createElement("div")
-    this.type = t
   }
 
   get htmlElement() {
     return this.#htmlElement
   }
 
-  set type(t) {
-    super.type = t
-    this.#htmlElement.className = "cell " + t
-  }
-
-  get type() {
-    return super.type
+  render() {
+    this.#htmlElement.className = "cell " + this._type
   }
 }
 
-class HTMLField extends Field {
+class HTMLField extends AbstractField {
   #htmlElement
   #subscribeAction
 
   constructor(rows, cols) {
     super(rows, cols)
     this.#htmlElement = document.getElementById("field")
-    this.forEachCell(cell => 
-      this.#htmlElement.append(cell.htmlElement))
+    this.forEachCell(cell => {
+      this.#htmlElement.append(cell.htmlElement)
+    })
   }
 
-  createCell(type) {
-    return new HTMLCell(type)
+  createCell(x, y, type) {
+    return new HTMLCell(x, y, type)
+  }
+}
+
+class HTMLSnake extends AbstractSnake {
+  createCell(x, y) {
+    return new HTMLCell(x, y, "snake")
+  } 
+}
+
+class Game {
+  #interval
+  #paused = true
+  #snake
+  #field
+  #score = 0
+
+  constructor(field, snake) {
+    this.#field = field
+    this.#snake = snake
+    this.#snake.spawn()
+    this.#field.spawnApple()
+
+    this.execInGameOver = () => {}
+    this.onScoreChange = () => {}
+    this.frameDelay = 200
+  }
+
+  start() {
+    this.#interval = setInterval(() => {
+      const status = this.#snake.move()
+
+      if (status === "GAME_OVER") {
+        this.stop()
+        this.execInGameOver()
+      }
+
+      if (status === "APPLE") {
+        this.#score++
+        this.onScoreChange(this.#score)
+        this.#field.spawnApple()
+      }
+
+    }, this.frameDelay)
+    this.#paused = false
+  }
+
+  stop() {
+    clearInterval(this.#interval)
+    this.#paused = true
+  }
+
+  get paused() {
+    return this.#paused
   }
 }
 
 window.onload = () => {
   const gameField = new HTMLField(20, 20)
-  const snake = new Snake(1, 1, 3, "right")
+  const snake = new HTMLSnake(1, 1, 3, "right", gameField)
   const game = new Game(gameField, snake)
   game.frameDelay = 100
   game.execInGameOver = () => {

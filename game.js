@@ -1,12 +1,16 @@
-export class Cell {
+export class AbstractCell {
   static availableTypes = ["weed", "apple", "snake", "wall"]
   static isAvailableType(t) {
-    return Cell.availableTypes.includes(t)
+    return AbstractCell.availableTypes.includes(t)
   }
 
   _type
+  _x
+  _y
 
-  constructor(t="weed") {
+  constructor(x, y, t="weed") {
+    this._x = x
+    this._y = y
     this._type = t
   }
 
@@ -16,15 +20,29 @@ export class Cell {
 
   set type(t) {
     if (t === this._type) return
-    if (Cell.isAvailableType(t)) {
+    if (AbstractCell.isAvailableType(t)) {
       this._type = t
     } else throw new Error(
-      `Not such cell type: ${t}, available types: ${Cell.availableTypes}`
+      `Not such cell type: ${t}, available types: ${AbstractCell.availableTypes}`
     )
+  }
+
+  render() {}
+
+  isWall() {
+    return this.type === "wall"
+  }
+
+  isSnake() {
+    return this.type === "snake"
+  }
+
+  isApple() {
+    return this.type === "apple"
   }
 }
 
-export class Field {
+export class AbstractField {
   #cells
   #rowsCount
   #colsCount
@@ -44,58 +62,47 @@ export class Field {
           currentCellType = "wall"
         }
 
-        const cell = this.createCell(currentCellType)
+        const cell = this.createCell(j, i, currentCellType)
+        cell.render()
         row.push(cell)
       }
       this.#cells.push(row)
     }
   }
 
-  createCell(type) {
-    return new Cell(type)
+  createCell(x, y, type) {
+    return new AbstractCell(x, y, type)
   }
 
   forEachCell(cb) {
     this.#cells.forEach( row => row.forEach(cb) )
   }
 
-  render(x, y, cellType) {
-    this.#cells[y][x].type = cellType
-  }
-
-  isWall(x, y) {
-    return this.#cells[y][x].type === "wall"
-  }
-
-  isSnake(x, y) {
-    return this.#cells[y][x].type === "snake"
-  }
-
-  isApple(x, y) {
-    return this.#cells[y][x].type === "apple"
+  getCell(x, y) {
+    return this.#cells[y][x]
   }
 
   spawnApple() {
     while (1) {
       const x = Math.floor(Math.random() * this.#colsCount)
       const y = Math.floor(Math.random() * this.#rowsCount)
+      const cell = this.getCell(x, y)
 
-      if (this.isSnake(x, y) || this.isWall(x, y)) continue
-
-      return this.render(x, y, "apple")
+      if (cell.isSnake() || cell.isWall()) continue
+      cell.type = "apple"
+      return cell.render()
     }
   }
 }
 
-export class Snake {
+export class AbstractSnake {
   #body = []
   #direction
-  #field
   #turnBlock = false
 
   static availableDirections = ["top", "left", "right", "bottom"]
   static isAvailableDirection(direction) {
-    return Snake.availableDirections.includes(direction)
+    return AbstractSnake.availableDirections.includes(direction)
   }
   static exclusiveDirectionPairs = {
     "top": "bottom",
@@ -104,8 +111,9 @@ export class Snake {
     "right": "left",
   }
 
-  constructor(headX=1, headY=1, length=3, direction="right") {
+  constructor(headX=1, headY=1, length=3, direction="right", field) {
     this.#direction = direction
+    this.field = field
 
     let x = headX, y = headY, fnX = () => headX, fnY = () => headY
     if (direction === "right") fnX = () => x++
@@ -118,26 +126,25 @@ export class Snake {
     }
   }
 
-  spawn(field) {
-    this.#field = field
-    this.#body.forEach(coors => {
-      const [x, y] = coors
-
-      this.#field.render(x, y, "snake")
+  spawn() {
+    this.#body.forEach(cell => {
+      const segment = this.field.getCell(cell[0], cell[1])
+      segment.type = "snake"
+      segment.render()
     })
   }
 
   hasExclusivePair(direction) {
-    const exclusivePair = Snake.exclusiveDirectionPairs[this.#direction]
+    const exclusivePair = AbstractSnake.exclusiveDirectionPairs[this.#direction]
     return direction === exclusivePair 
   }
 
   set direction(direction) {
     if (this.#turnBlock) return
     if (this.#direction === direction) return
-    if (!Snake.isAvailableDirection(direction)) 
+    if (!AbstractSnake.isAvailableDirection(direction)) 
       throw new Error(
-        `No such direction: ${direction}. Available: ${Snake.availableDirections}`
+        `No such direction: ${direction}. Available: ${AbstractSnake.availableDirections}`
       )
 
     if (this.hasExclusivePair(direction)) return
@@ -170,20 +177,23 @@ export class Snake {
     if (this.#direction === "top") --y
     if (this.#direction === "bottom") ++y
 
-    if (this.#field.isWall(x, y) || this.#field.isSnake(x, y))
+    const nextCell = this.field.getCell(x, y)
+    if (nextCell.isWall() || nextCell.isSnake())
       return "GAME_OVER"
-      // return gameOverCallback()
 
     let status = "APPLE"
 
-    if (!this.#field.isApple(x, y)) {
-      const deleted = this.#body.shift()
-      this.#field.render(deleted[0], deleted[1], "weed")
+    if (!nextCell.isApple(x, y)) {
+      const [delX, delY] = this.#body.shift()
+      const deleted = this.field.getCell(delX, delY)
+      deleted.type = "weed"
+      deleted.render()
       status = "NOTHIG"
     }
 
     this.#body.push([x, y])
-    this.#field.render(x, y, "snake")
+    nextCell.type = "snake"
+    nextCell.render()
     this.#turnBlock = false
 
     return status
@@ -191,52 +201,5 @@ export class Snake {
 
   find(cb) {
     return this.#body.find(cb)
-  }
-}
-
-export class Game {
-  #interval
-  #paused = true
-  #snake
-  #field
-  #score = 0
-
-  constructor(field, snake) {
-    this.#field = field
-    this.#snake = snake
-    this.#snake.spawn(this.#field)
-    this.#field.spawnApple()
-
-    this.execInGameOver = () => {}
-    this.onScoreChange = () => {}
-    this.frameDelay = 200
-  }
-
-  start() {
-    this.#interval = setInterval(() => {
-      const status = this.#snake.move()
-
-      if (status === "GAME_OVER") {
-        this.stop()
-        this.execInGameOver()
-      }
-
-      if (status === "APPLE") {
-        this.#score++
-        this.onScoreChange(this.#score)
-        this.#field.spawnApple()
-      }
-
-    }, this.frameDelay)
-    this.#paused = false
-  }
-
-  stop() {
-    clearInterval(this.#interval)
-    this.#paused = true
-  }
-
-  get paused() {
-    return this.#paused
   }
 }
