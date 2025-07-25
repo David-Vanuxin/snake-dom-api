@@ -91,6 +91,7 @@ export class Snake {
   #body = []
   #direction
   #field
+  #turnBlock = false
 
   static availableDirections = ["top", "left", "right", "bottom"]
   static isAvailableDirection(direction) {
@@ -132,6 +133,7 @@ export class Snake {
   }
 
   set direction(direction) {
+    if (this.#turnBlock) return
     if (this.#direction === direction) return
     if (!Snake.isAvailableDirection(direction)) 
       throw new Error(
@@ -141,6 +143,7 @@ export class Snake {
     if (this.hasExclusivePair(direction)) return
 
     this.#direction = direction
+    this.#turnBlock = true
   }
 
   turnUp() {
@@ -181,6 +184,7 @@ export class Snake {
 
     this.#body.push([x, y])
     this.#field.render(x, y, "snake")
+    this.#turnBlock = false
 
     return status
   }
