@@ -15,8 +15,44 @@
 }
 
 .snake {
+	display: flex;
 	background-color: blueviolet;
 }
+
+.snake:has(.segment) {
+	background-color: cadetblue;
+}
+
+.segment {
+	background-color: blueviolet;
+	width: 100%;
+	height: 100%;
+}
+
+.snake:has(.top):has(.grow) {
+	align-items: end;
+}
+
+.snake:has(.left):has(.grow) {
+	justify-content: end;
+}
+
+.snake:has(.right):has(.grow) {
+	justify-content: start;
+}
+
+.snake:has(.bottom):has(.reduce) {
+	align-items: end;
+}
+
+.snake:has(.left):has(.reduce) {
+	justify-content: start;
+}
+
+.snake:has(.right):has(.reduce) {
+	justify-content: end;
+}
+
 
 .apple {
 	background-color: crimson;

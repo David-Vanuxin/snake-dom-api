@@ -202,6 +202,20 @@ export class AbstractSnake {
   find(cb) {
     return this.#body.find(cb)
   }
+
+  get head() {
+    const [x, y] = this.#body.at(-1)
+    return this.field.getCell(x, y)
+  }
+
+  get tail() {
+    const [x, y] = this.#body.at(0)
+    return this.field.getCell(x, y)
+  }
+
+  get direction() {
+    return this.#direction
+  }
 }
 
 export class Game {
