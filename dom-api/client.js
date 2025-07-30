@@ -1,4 +1,4 @@
-import {AbstractCell, AbstractField, AbstractSnake, Game} from "./game.js"
+import {AbstractCell, AbstractField, AbstractSnake, Game} from "../game.js"
 
 const DELAY = 100
 const SIZE = 20

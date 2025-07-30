@@ -1,4 +1,4 @@
-import {AbstractCell, AbstractField, AbstractSnake, Game} from "./game.js"
+import {AbstractCell, AbstractField, AbstractSnake, Game} from "../game.js"
 
 class CanvasCell extends AbstractCell {
   #context
