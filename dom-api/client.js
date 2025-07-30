@@ -22,12 +22,11 @@ class HTMLCell extends AbstractCell {
     this.#htmlElement.className = "cell " + this._type
   }
 
-  modify(spec, direction) {
+  animate(spec, direction) {
     const segment = document.createElement("div")
     segment.className = `segment ${spec === "head" ? "grow" : "reduce"} ${direction}`
     this.#htmlElement.append(segment)
     requestAnimationFrame(addAnimation(segment))
-    console.dir(this.#htmlElement)
   }
 }
 
@@ -113,7 +112,7 @@ class HTMLSnake extends AbstractSnake {
   }
   move() {
     const status =  super.move()
-    super.head.modify("head", super.direction)
+    super.head.animate("head", super.direction)
     // super.tail.modify("tail", super.direction) // TODO
     return status
   }

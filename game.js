@@ -96,7 +96,7 @@ export class AbstractField {
 }
 
 export class AbstractSnake {
-  #body = []
+  _body = []
   #direction
   #turnBlock = false
 
@@ -122,12 +122,12 @@ export class AbstractSnake {
     if (direction === "bottom") fnY = () => y++
 
     for (let i = length; i > 0; i--) {
-      this.#body.push([fnX(), fnY()])
+      this._body.push([fnX(), fnY()])
     }
   }
 
   spawn() {
-    this.#body.forEach(cell => {
+    this._body.forEach(cell => {
       const segment = this.field.getCell(cell[0], cell[1])
       segment.type = "snake"
       segment.render()
@@ -170,7 +170,7 @@ export class AbstractSnake {
   }
 
   move() {
-    let [x, y] = this.#body.at(-1)
+    let [x, y] = this._body.at(-1)
 
     if (this.#direction === "right") ++x
     if (this.#direction === "left") --x
@@ -184,14 +184,14 @@ export class AbstractSnake {
     let status = "APPLE"
 
     if (!nextCell.isApple(x, y)) {
-      const [delX, delY] = this.#body.shift()
+      const [delX, delY] = this._body.shift()
       const deleted = this.field.getCell(delX, delY)
       deleted.type = "weed"
       deleted.render()
       status = "NOTHIG"
     }
 
-    this.#body.push([x, y])
+    this._body.push([x, y])
     nextCell.type = "snake"
     nextCell.render()
     this.#turnBlock = false
@@ -200,21 +200,25 @@ export class AbstractSnake {
   }
 
   find(cb) {
-    return this.#body.find(cb)
+    return this._body.find(cb)
   }
 
   get head() {
-    const [x, y] = this.#body.at(-1)
+    const [x, y] = this._body.at(-1)
     return this.field.getCell(x, y)
   }
 
   get tail() {
-    const [x, y] = this.#body.at(0)
+    const [x, y] = this._body.at(0)
     return this.field.getCell(x, y)
   }
 
   get direction() {
     return this.#direction
+  }
+
+  get body() {
+    return this._body
   }
 }
 
@@ -238,17 +242,21 @@ export class Game {
 
   start() {
     this.#interval = setInterval(() => {
-      const status = this.#snake.move()
+      try {
+        const status = this.#snake.move()
 
-      if (status === "GAME_OVER") {
-        this.stop()
-        this.execInGameOver()
-      }
+        if (status === "GAME_OVER") {
+          this.stop()
+          this.execInGameOver()
+        }
 
-      if (status === "APPLE") {
-        this.#score++
-        this.onScoreChange(this.#score)
-        this.#field.spawnApple()
+        if (status === "APPLE") {
+          this.#score++
+          this.onScoreChange(this.#score)
+          this.#field.spawnApple()
+        }
+      } catch (e) {
+        console.error(e)
       }
 
     }, this.frameDelay)
