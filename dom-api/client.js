@@ -5,6 +5,7 @@ const SIZE = 20
 
 class HTMLCell extends AbstractCell {
   #htmlElement
+  #animationDirection = null
 
   constructor(x, y, t) {
     super(x, y, t)
@@ -16,17 +17,33 @@ class HTMLCell extends AbstractCell {
   }
 
   render() {
-    if (!this.isSnake()) {
-      this.#htmlElement.replaceChildren()
-    }
+    this.#htmlElement.replaceChildren()
     this.#htmlElement.className = "cell " + this._type
   }
 
-  animate(spec, direction) {
+  animate(spec) {
     const segment = document.createElement("div")
-    segment.className = `segment ${spec === "head" ? "grow" : "reduce"} ${direction}`
+    segment.className = `segment ${spec === "head" ? "grow" : "reduce"} ${this.#animationDirection}`
     this.#htmlElement.append(segment)
     requestAnimationFrame(addAnimation(segment))
+  }
+
+  set animationDirection(d) {
+    if (this.isSnake()) {
+      if (AbstractSnake.isAvailableDirection(d))
+        this.#animationDirection = d
+      else {
+        throw new Error(
+          `This animation direction (${d}) is not available` +
+          `Available: ${AbstractSnake.availableDirections}`
+        )
+      }
+    } else if (d === null) this.#animationDirection = null
+    else {
+      throw new Error(
+        "If cell type isn't 'snake' animationDirection must be null"
+      )
+    }
   }
 }
 
@@ -112,9 +129,22 @@ class HTMLSnake extends AbstractSnake {
   }
   move() {
     const status =  super.move()
-    super.head.animate("head", super.direction)
-    // super.tail.modify("tail", super.direction) // TODO
+    super.head.animationDirection = this.direction
+    super.head.animate("head")
+    super.tail.animate("tail")
+    this.body.forEach((cell, index) => {
+      if (index !== 0 && index !== this.body.length - 1)
+        this.field.getCell(cell[0], cell[1]).render()
+    })
     return status
+  }
+  spawn() {
+    this.body.forEach(cell => {
+      const segment = this.field.getCell(cell[0], cell[1])
+      segment.type = "snake"
+      segment.animationDirection = this.direction
+      segment.render()
+    })
   }
 }
 
