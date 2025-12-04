@@ -9,8 +9,8 @@
 Используйте стрелки для управления змейкой, пробел для постановки игры на паузу
 
 ## Запуск
-sh```
-git clone snake-dom-api &&
+```sh
+git clone https://github.com/David-Vanuxin/snake-dom-api.git &&
 cd snake-dom-api &&
 npm i serve &&
 npx serve
