@@ -1,6 +1,6 @@
 import {AbstractCell, AbstractField, AbstractSnake, Game} from "../game.js"
 
-const DELAY = 100
+const DELAY = 150
 const SIZE = 20
 
 class HTMLCell extends AbstractCell {
@@ -44,6 +44,10 @@ class HTMLCell extends AbstractCell {
         "If cell type isn't 'snake' animationDirection must be null"
       )
     }
+  }
+
+  get animationDirection() {
+    return this.#animationDirection
   }
 }
 
@@ -131,6 +135,13 @@ class HTMLSnake extends AbstractSnake {
     const status =  super.move()
     super.head.animationDirection = this.direction
     super.head.animate("head")
+
+    const [x, y] = this.body.at(1)
+    const preTail = this.field.getCell(x, y)
+
+    if (preTail.animationDirection !== super.tail.animationDirection)
+      super.tail.animationDirection = preTail.animationDirection
+
     super.tail.animate("tail")
     this.body.forEach((cell, index) => {
       if (index !== 0 && index !== this.body.length - 1)
