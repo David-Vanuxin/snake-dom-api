@@ -1,4 +1,5 @@
 import {AbstractCell, AbstractField, AbstractSnake, Game} from "../game.js"
+import HasPseudoclassPolyfill from "./polyfill.js"
 
 const DELAY = 150
 const SIZE = 20
@@ -128,6 +129,12 @@ class HTMLField extends AbstractField {
 }
 
 class HTMLSnake extends AbstractSnake {
+  browserCheck() {
+    const polyfill = new HasPseudoclassPolyfill()
+    polyfill.checkBrowser()
+    this.usePolyfill = polyfill.getFn()
+  }
+
   createCell(x, y) {
     return new HTMLCell(x, y, "snake")
   }
@@ -147,6 +154,9 @@ class HTMLSnake extends AbstractSnake {
       if (index !== 0 && index !== this.body.length - 1)
         this.field.getCell(cell[0], cell[1]).render()
     })
+
+    this.usePolyfill()
+
     return status
   }
   spawn() {
@@ -162,6 +172,7 @@ class HTMLSnake extends AbstractSnake {
 window.onload = () => {
   const gameField = new HTMLField(SIZE, SIZE)
   const snake = new HTMLSnake(1, 1, 3, "right", gameField)
+  snake.browserCheck()
   const game = new Game(gameField, snake)
   game.frameDelay = DELAY
 

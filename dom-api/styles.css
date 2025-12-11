@@ -41,8 +41,12 @@
 	justify-content: start;
 }
 
-.snake:has(.bottom):has(.reduce) {
-	align-items: end;
+.snake:has(.bottom):has(.grow) {
+	justify-content: start;
+}
+
+.snake:has(.top):has(.reduce) {
+	align-items: start;
 }
 
 .snake:has(.left):has(.reduce) {
@@ -53,6 +57,9 @@
 	justify-content: end;
 }
 
+.snake:has(.bottom):has(.reduce) {
+	align-items: end;
+}
 
 .apple {
 	background-color: crimson;
